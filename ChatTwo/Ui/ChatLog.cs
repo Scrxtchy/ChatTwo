@@ -262,6 +262,7 @@ internal sealed class ChatLog : IUiComponent {
     }
 
     private unsafe ImGuiViewport* _lastViewport;
+    private bool _wasDocked;
 
     private void HandleKeybinds(bool modifiersOnly = false) {
         var modifierState = (ModifierFlag) 0;
@@ -402,7 +403,7 @@ internal sealed class ChatLog : IUiComponent {
             flags |= ImGuiWindowFlags.NoTitleBar;
         }
 
-        if (this._lastViewport == ImGuiHelpers.MainViewport.NativePtr && !ImGui.IsWindowDocked()) {
+        if (this._lastViewport == ImGuiHelpers.MainViewport.NativePtr && !this._wasDocked) {
             ImGui.SetNextWindowBgAlpha(this.Ui.Plugin.Config.WindowAlpha / 100f);
         }
 
@@ -410,6 +411,7 @@ internal sealed class ChatLog : IUiComponent {
 
         if (!ImGui.Begin($"{this.Ui.Plugin.Name}###chat2", flags)) {
             this._lastViewport = ImGui.GetWindowViewport().NativePtr;
+            this._wasDocked = ImGui.IsWindowDocked();
             ImGui.End();
             return false;
         }
@@ -423,6 +425,7 @@ internal sealed class ChatLog : IUiComponent {
         }
 
         this._lastViewport = ImGui.GetWindowViewport().NativePtr;
+        this._wasDocked = ImGui.IsWindowDocked();
 
         var currentTab = this.Ui.Plugin.Config.SidebarTabView
             ? this.DrawTabSidebar()
