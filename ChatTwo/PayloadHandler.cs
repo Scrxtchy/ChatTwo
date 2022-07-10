@@ -455,7 +455,7 @@ internal sealed class PayloadHandler {
             if (isLeader) {
                 if (!isInParty) {
                     if (inInstance && inPartyInstance) {
-                        if (chunk.Message?.ContentId is not null or 0 && ImGui.Selectable("Invite to Party")) {
+                        if (chunk.Message?.ContentId is not (null or 0) && ImGui.Selectable("Invite to Party")) {
                             this.Ui.Plugin.Functions.Party.InviteInInstance(chunk.Message!.ContentId);
                         }
                     } else if (!inInstance && ImGui.BeginMenu("Invite to Party")) {
@@ -463,7 +463,7 @@ internal sealed class PayloadHandler {
                             this.Ui.Plugin.Functions.Party.InviteSameWorld(player.PlayerName, (ushort) player.World.RowId, chunk.Message?.ContentId ?? 0);
                         }
 
-                        if (chunk.Message?.ContentId is not null or 0 && ImGui.Selectable("Different world")) {
+                        if (chunk.Message?.ContentId is not (null or 0) && ImGui.Selectable("Different world")) {
                             this.Ui.Plugin.Functions.Party.InviteOtherWorld(chunk.Message!.ContentId);
                         }
 
