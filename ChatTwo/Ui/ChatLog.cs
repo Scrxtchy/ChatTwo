@@ -655,7 +655,7 @@ internal sealed class ChatLog : IUiComponent {
             }
 
             try {
-                tab.MessagesMutex.WaitOne();
+                tab.MessagesMutex.Wait();
 
                 var reset = false;
                 if (this._lastResize.IsRunning && this._lastResize.Elapsed.TotalSeconds > 0.25) {
@@ -751,7 +751,7 @@ internal sealed class ChatLog : IUiComponent {
                     lastPos = ImGui.GetCursorPosY();
                 }
             } finally {
-                tab.MessagesMutex.ReleaseMutex();
+                tab.MessagesMutex.Release();
                 ImGui.PopStyleVar(this.Ui.Plugin.Config.PrettierTimestamps && this.Ui.Plugin.Config.MoreCompactPretty ? 2 : 1);
             }
 
