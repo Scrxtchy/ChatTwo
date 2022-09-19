@@ -136,14 +136,14 @@ internal sealed unsafe class Chat : IDisposable {
         this.ReplyInSelectedChatModeHook?.Enable();
         this.SetChatLogTellTargetHook?.Enable();
 
-        this.Plugin.Framework.Update += this.InterceptKeybinds;
+        //this.Plugin.Framework.Update += this.InterceptKeybinds;
         this.Plugin.ClientState.Login += this.Login;
         this.Login(null, null);
     }
 
     public void Dispose() {
         this.Plugin.ClientState.Login -= this.Login;
-        this.Plugin.Framework.Update -= this.InterceptKeybinds;
+        //this.Plugin.Framework.Update -= this.InterceptKeybinds;
 
         this.SetChatLogTellTargetHook?.Dispose();
         this.ReplyInSelectedChatModeHook?.Dispose();
@@ -430,7 +430,7 @@ internal sealed unsafe class Chat : IDisposable {
 
         string? input = null;
         var option = Framework.Instance()->GetUiModule()->GetConfigModule()->GetValueById(572);
-        if (option != null) {
+        /*if (option != null) {
             var directChat = option->Int > 0;
             if (directChat && this._currentCharacter != null) {
                 // FIXME: this whole system sucks
@@ -439,17 +439,17 @@ internal sealed unsafe class Chat : IDisposable {
                     input = c.ToString();
                 }
             }
-        }
+        }*/
 
         string? addIfNotPresent = null;
 
-        var str = value + 2;
+        /*var str = value + 2;
         if (str != null && ((int) str->Type & 0xF) == (int) ValueType.String && str->String != null) {
             var add = MemoryHelper.ReadStringNullTerminated((IntPtr) str->String);
             if (add.Length > 0) {
                 addIfNotPresent = add;
             }
-        }
+        }*/
 
         try {
             var args = new ChatActivatedArgs(new ChannelSwitchInfo(null)) {
@@ -462,7 +462,8 @@ internal sealed unsafe class Chat : IDisposable {
         }
 
         // prevent the game from focusing the chat log
-        return 1;
+        //return 1;
+        return this.ChatLogRefreshHook!.Original(log, eventId, value);
     }
 
     private IntPtr ChangeChannelNameDetour(IntPtr agent) {

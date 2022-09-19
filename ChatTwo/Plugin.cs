@@ -127,7 +127,7 @@ public sealed class Plugin : IDalamudPlugin {
     }
 
     private static readonly string[] ChatAddonNames = {
-        "ChatLog",
+        //"ChatLog",
         "ChatLogPanel_0",
         "ChatLogPanel_1",
         "ChatLogPanel_2",

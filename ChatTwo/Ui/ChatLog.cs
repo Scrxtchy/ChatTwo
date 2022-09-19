@@ -12,6 +12,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Logging;
 using Dalamud.Memory;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using ImGuiScene;
 using Lumina.Excel.GeneratedSheets;
@@ -253,7 +254,7 @@ internal sealed class ChatLog : IUiComponent {
     }
 
     private static float GetRemainingHeightForMessageLog() {
-        var lineHeight = ImGui.CalcTextSize("A").Y;
+        var lineHeight = 0;
         return ImGui.GetContentRegionAvail().Y
                - lineHeight * 2
                - ImGui.GetStyle().ItemSpacing.Y
@@ -359,13 +360,14 @@ internal sealed class ChatLog : IUiComponent {
         }
 
         // if the chat is hidden because of a cutscene and no longer in a cutscene, set the hide state to none
-        if (this._hideState is HideState.Cutscene or HideState.CutsceneOverride && !this.CutsceneActive && !this.GposeActive) {
+        if ((this._hideState is HideState.Cutscene or HideState.CutsceneOverride) && !this.CutsceneActive && !this.GposeActive) {
             this._hideState = HideState.None;
         }
 
         // if the chat is hidden because of a cutscene and the chat has been activated, show chat
         if (this._hideState == HideState.Cutscene && this.Activate) {
             this._hideState = HideState.CutsceneOverride;
+            
         }
 
         // if the user hid the chat and is now activating chat, reset the hide state
@@ -373,13 +375,19 @@ internal sealed class ChatLog : IUiComponent {
             this._hideState = HideState.None;
         }
 
-        if (this._hideState is HideState.Cutscene or HideState.User) {
+        if (this.Activate) this.Activate = false;
+
+        /*if (this._hideState is HideState.Cutscene or HideState.User) {
             return false;
         }
 
         if (this.Ui.Plugin.Config.HideWhenNotLoggedIn && !this.Ui.Plugin.ClientState.IsLoggedIn) {
             return false;
-        }
+        }*/
+        var addon = GetChatLogAddon();
+
+        if (!addon->AtkUnitBase.IsVisible)
+            return false;
 
         var flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         if (!this.Ui.Plugin.Config.CanMove) {
@@ -420,16 +428,16 @@ internal sealed class ChatLog : IUiComponent {
             ? this.DrawTabSidebar()
             : this.DrawTabBar();
 
-        if (this.Activate) {
-            ImGui.SetKeyboardFocusHere();
-        }
+        /*if (this.Activate) {
+            this._hideState = HideState.None;
+        }*/
 
         Tab? activeTab = null;
         if (currentTab > -1 && currentTab < this.Ui.Plugin.Config.Tabs.Count) {
             activeTab = this.Ui.Plugin.Config.Tabs[currentTab];
         }
 
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+        /*ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
         try {
             if (this._tellTarget != null) {
                 var world = this.Ui.Plugin.DataManager.GetExcelSheet<World>()
@@ -609,7 +617,7 @@ internal sealed class ChatLog : IUiComponent {
             if (ImGuiUtil.IconButton(FontAwesomeIcon.Leaf)) {
                 this.Ui.Plugin.Functions.ClickNoviceNetworkButton();
             }
-        }
+        }*/
 
         ImGui.End();
 
@@ -618,6 +626,7 @@ internal sealed class ChatLog : IUiComponent {
 
     internal void UserHide() {
         this._hideState = HideState.User;
+        this.Activate = false;
     }
 
     private void DrawMessageLog(Tab tab, PayloadHandler handler, float childHeight, bool switchedTab) {
@@ -1111,4 +1120,12 @@ internal sealed class ChatLog : IUiComponent {
             ImGui.PopStyleColor();
         }
     }
+
+    private unsafe AddonChatLogPanel* GetChatLogAddon()
+    {
+        var ptr = Ui.Plugin.GameGui.GetAddonByName("ChatLog", 1);
+        if (ptr == IntPtr.Zero)
+            return null;
+        return (AddonChatLogPanel*)ptr;
+    }   
 }

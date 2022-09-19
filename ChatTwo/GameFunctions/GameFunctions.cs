@@ -67,13 +67,13 @@ internal unsafe class GameFunctions : IDisposable {
 
         SignatureHelper.Initialise(this);
 
-        this.ResolveTextCommandPlaceholderHook?.Enable();
+        //this.ResolveTextCommandPlaceholderHook?.Enable();
     }
 
     public void Dispose() {
         this.Chat.Dispose();
 
-        this.ResolveTextCommandPlaceholderHook?.Dispose();
+        //this.ResolveTextCommandPlaceholderHook?.Dispose();
 
         Marshal.FreeHGlobal(this._placeholderNamePtr);
     }
