@@ -798,8 +798,10 @@ internal sealed class ChatLog : IUiComponent {
                 continue;
             }
 
-            var unread = tabI == this.LastTab || tab.UnreadMode == UnreadMode.None || tab.Unread == 0 ? "" : $" ({tab.Unread})";
+            string unread = tabI == this.LastTab || tab.UnreadMode == UnreadMode.None || tab.Unread == 0 ? "" : $" ({tab.Unread})";
+            if (unread != "") ImGui.PushStyleColor(ImGuiCol.Text, ColourUtil.RgbaToAbgr(0xFF5E5BFF));
             var draw = ImGui.BeginTabItem($"{tab.Name}{unread}###log-tab-{tabI}");
+            if (unread != "") ImGui.PopStyleColor();
             this.DrawTabContextMenu(tab, tabI);
 
             if (!draw) {
@@ -842,8 +844,10 @@ internal sealed class ChatLog : IUiComponent {
                     continue;
                 }
 
-                var unread = tabI == this.LastTab || tab.UnreadMode == UnreadMode.None || tab.Unread == 0 ? "" : $" ({tab.Unread})";
+                string unread = tabI == this.LastTab || tab.UnreadMode == UnreadMode.None || tab.Unread == 0 ? "" : $" ({tab.Unread})";
+                if (unread != "") ImGui.PushStyleColor(ImGuiCol.Text, ColourUtil.RgbaToAbgr(0xFF5E5BFF));
                 var clicked = ImGui.Selectable($"{tab.Name}{unread}###log-tab-{tabI}", this.LastTab == tabI);
+                if (unread != "") ImGui.PopStyleColor();
                 this.DrawTabContextMenu(tab, tabI);
 
                 if (!clicked) {
