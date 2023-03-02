@@ -1,18 +1,15 @@
 using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 using ChatTwo.Code;
 using ChatTwo.GameFunctions.Types;
 using ChatTwo.Resources;
 using ChatTwo.Util;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Keys;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
-using Dalamud.Logging;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
 using Lumina.Excel.GeneratedSheets;
@@ -264,7 +261,7 @@ internal sealed class ChatLog : IUiComponent {
     private unsafe ImGuiViewport* _lastViewport;
     private bool _wasDocked;
 
-    private void HandleKeybinds(bool modifiersOnly = false) {
+   /* private void HandleKeybinds(bool modifiersOnly = false) {
         var modifierState = (ModifierFlag) 0;
         if (ImGui.GetIO().KeyAlt) {
             modifierState |= ModifierFlag.Alt;
@@ -318,7 +315,7 @@ internal sealed class ChatLog : IUiComponent {
                 PluginLog.LogError(ex, "Error in chat Activated event");
             }
         }
-    }
+    }*/
 
     private bool CutsceneActive {
         get {
@@ -387,7 +384,7 @@ internal sealed class ChatLog : IUiComponent {
         }*/
         var addon = GetChatLogAddon();
 
-        if (!addon->AtkUnitBase.IsVisible)
+        if (addon is null || !addon->AtkUnitBase.IsVisible)
             return false;
 
         var flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
@@ -405,6 +402,22 @@ internal sealed class ChatLog : IUiComponent {
 
         if (this._lastViewport == ImGuiHelpers.MainViewport.NativePtr && !this._wasDocked) {
             ImGui.SetNextWindowBgAlpha(this.Ui.Plugin.Config.WindowAlpha / 100f);
+        }
+
+        var textinput = addon->AtkUnitBase.UldManager.NodeList[15]->GetAsAtkComponentNode();
+        AtkResNode* at = textinput->Component->UldManager.NodeList[3];
+
+        if (CollisionAdjust(GetGenericAddon("ContextMenu"))) return false;
+        //TODO: Clickthrough flags not operating
+
+        string[] coladdons = { "ItemDetail", "ActionDetail" };
+
+        bool hideWindowCollide = (at->IsVisible || coladdons.Any(addon => CollisionAdjust(GetGenericAddon(addon), 3)));
+
+        if (hideWindowCollide)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.15f);
+            ImGui.SetNextWindowBgAlpha(0.15f);
         }
 
         ImGui.SetNextWindowSize(new Vector2(500, 250) * ImGuiHelpers.GlobalScale, ImGuiCond.FirstUseEver);
@@ -621,6 +634,8 @@ internal sealed class ChatLog : IUiComponent {
                 this.Ui.Plugin.Functions.ClickNoviceNetworkButton();
             }
         }*/
+
+        if (hideWindowCollide) ImGui.PopStyleVar();
 
         ImGui.End();
 
@@ -1148,9 +1163,29 @@ internal sealed class ChatLog : IUiComponent {
 
     private unsafe AddonChatLogPanel* GetChatLogAddon()
     {
-        var ptr = Ui.Plugin.GameGui.GetAddonByName("ChatLog", 1);
+        return (AddonChatLogPanel*)GetGenericAddon("ChatLog");
+    }
+
+    private unsafe AtkUnitBase* GetGenericAddon(string addon)
+    {
+        var ptr = Ui.Plugin.GameGui.GetAddonByName(addon, 1);
         if (ptr == IntPtr.Zero)
             return null;
-        return (AddonChatLogPanel*)ptr;
-    }   
+        return (AtkUnitBase*)ptr;
+    }
+
+    private unsafe bool CollisionAdjust(AtkUnitBase* atkBase, int childNode = -1)
+    {
+        /*collisioncheck = (!at->IsVisible && itemdetail->IsVisible */
+        if (atkBase == null || !atkBase->IsVisible) return false;
+
+        AtkResNode* atkRes = childNode < 0 ? atkBase->RootNode : atkBase->UldManager.NodeList[childNode];
+        bool deferBounds = (atkRes->X == 0 || atkRes->Y == 0);
+        return (
+        LastWindowPos.X < (!deferBounds ? atkRes->X : atkBase->RootNode->X) + atkRes->Width &&
+        LastWindowPos.X + LastWindowSize.X > (!deferBounds ? atkRes->X : atkBase->RootNode->X) &&
+        LastWindowPos.Y < (!deferBounds ? atkRes->Y : atkBase->RootNode->Y) + atkRes->Height &&
+        LastWindowPos.Y + LastWindowSize.Y > (!deferBounds ? atkRes->Y : atkBase->RootNode->Y));
+    }
+
 }
