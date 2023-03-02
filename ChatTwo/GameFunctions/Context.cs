@@ -110,4 +110,9 @@ internal sealed unsafe class Context {
         var itemFinder = Framework.Instance()->GetUiModule()->GetItemFinderModule();
         this._searchForItem(itemFinder, itemId, 1);
     }
+
+    internal void OpenRecipeItem(uint itemId)
+    {
+        AgentRecipeNote.Instance()->OpenRecipeByItemId(itemId);
+    }
 }

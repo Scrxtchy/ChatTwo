@@ -395,6 +395,10 @@ internal sealed class PayloadHandler {
         if (ImGui.Selectable("Copy Item Name")) {
             ImGui.SetClipboardText(name.TextValue);
         }
+        if (ImGui.Selectable("Open Recipe"))
+        {
+            this.Ui.Plugin.Functions.Context.OpenRecipeItem(payload.ItemId);
+        }
     }
 
     private void DrawEventItemPopup(ItemPayload payload) {
