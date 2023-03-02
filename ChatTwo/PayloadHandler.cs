@@ -120,13 +120,13 @@ internal sealed class PayloadHandler {
         }
 
         if (chunk.Message is { } message) {
-            if (ImGui.BeginMenu("Copy")) {
-                var text = message.Sender
+            var text = message.Sender
                     .Concat(message.Content)
                     .Where(chunk => chunk is TextChunk)
                     .Cast<TextChunk>()
                     .Select(text => text.Content)
                     .Aggregate(string.Concat);
+            if (ImGui.BeginMenu("Copy")) {
                 ImGui.InputTextMultiline(
                     "##chat2-copy",
                     ref text,
@@ -135,6 +135,10 @@ internal sealed class PayloadHandler {
                     ImGuiInputTextFlags.ReadOnly
                 );
                 ImGui.EndMenu();
+            }
+            if (ImGui.IsItemClicked())
+            {
+                ImGui.SetClipboardText(text);
             }
 
             var col = ImGui.GetStyle().Colors[(int) ImGuiCol.TextDisabled];
