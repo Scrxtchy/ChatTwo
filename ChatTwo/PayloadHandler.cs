@@ -289,8 +289,8 @@ internal sealed class PayloadHandler {
                 this.ClickLinkPayload(chunk, payload, link);
                 break;
             }
-            case PartyFinderPayload pf: {
-                this.Ui.Plugin.Functions.OpenPartyFinder(pf.Id);
+            case Dalamud.Game.Text.SeStringHandling.Payloads.PartyFinderPayload pf: { 
+                this.Ui.Plugin.Functions.OpenPartyFinder(pf.ListingId);
                 break;
             }
             case AchievementPayload achievement: {
