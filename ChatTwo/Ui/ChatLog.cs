@@ -837,7 +837,7 @@ internal sealed class ChatLog : IUiComponent {
 
         var switchedTab = false;
         var childHeight = GetRemainingHeightForMessageLog();
-        if (ImGui.BeginChild("##chat2-tab-sidebar", new Vector2(-1, childHeight))) {
+        if (ImGui.BeginChild("##chat2-tab-sidebar", new Vector2(-1, childHeight), false, ImGuiWindowFlags.NoScrollbar)) {
             for (var tabI = 0; tabI < this.Ui.Plugin.Config.Tabs.Count; tabI++) {
                 var tab = this.Ui.Plugin.Config.Tabs[tabI];
                 if (tab.PopOut) {
