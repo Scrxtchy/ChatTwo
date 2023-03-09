@@ -442,14 +442,20 @@ internal sealed class PayloadHandler {
         this.Log.DrawChunks(name, false);
         ImGui.Separator();
 
-        if (ImGui.Selectable("Send Tell")) {
-            this.Log.Chat = $"/tell {player.PlayerName}";
-            if (player.World.IsPublic) {
-                this.Log.Chat += $"@{player.World.Name}";
+        if (ImGui.BeginMenu("Send Tell")) {
+            var text = $"/tell {player.PlayerName}{(player.World.IsPublic ? $"@{player.World.Name}" : "")} ";
+            ImGui.PushItemWidth(600f);
+            if (ImGui.InputText(
+                   "##chat2-sendtell",
+                   ref text,
+                   500,
+                   ImGuiInputTextFlags.EnterReturnsTrue
+               ))
+            {
+                this.Ui.Plugin.Common.Functions.Chat.SendMessage(text);
             }
-
-            this.Log.Chat += " ";
-            this.Log.Activate = true;
+            ImGui.PopItemWidth();
+            ImGui.EndMenu();
         }
 
         if (player.World.IsPublic) {
