@@ -22,6 +22,7 @@ internal sealed class ChatLog : IUiComponent {
     internal PluginUi Ui { get; }
 
     internal bool Activate;
+    internal bool hideChat;
     internal string Chat = string.Empty;
     private readonly TextureWrap? _fontIcon;
     private readonly List<string> _inputBacklog = new();
@@ -412,9 +413,9 @@ internal sealed class ChatLog : IUiComponent {
 
         string[] coladdons = { "ItemDetail", "ActionDetail" };
 
-        bool hideWindowCollide = (at->IsVisible || coladdons.Any(addon => CollisionAdjust(GetGenericAddon(addon), 3)));
+        hideChat = (at->IsVisible || coladdons.Any(addon => CollisionAdjust(GetGenericAddon(addon), 3)));
 
-        if (hideWindowCollide)
+        if (hideChat)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.15f);
             ImGui.SetNextWindowBgAlpha(0.15f);
@@ -634,8 +635,7 @@ internal sealed class ChatLog : IUiComponent {
                 this.Ui.Plugin.Functions.ClickNoviceNetworkButton();
             }
         }*/
-
-        if (hideWindowCollide) ImGui.PopStyleVar();
+        if (hideChat) ImGui.PopStyleVar();
 
         ImGui.End();
 
@@ -774,7 +774,9 @@ internal sealed class ChatLog : IUiComponent {
                 ImGui.SetScrollHereY(1f);
             }
 
+            if (hideChat) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
             handler.Draw();
+            if (hideChat) ImGui.PopStyleVar();
 
             if (table) {
                 ImGui.EndTable();
