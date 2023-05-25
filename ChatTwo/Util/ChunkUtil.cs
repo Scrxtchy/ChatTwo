@@ -69,8 +69,15 @@ internal static class ChunkUtil {
                 case PayloadType.Unknown:
                     var rawPayload = (RawPayload) payload;
                     if (rawPayload.Data.Length > 1 && rawPayload.Data[1] == 0x13) {
-                        foreground.Pop();
-                        glow.Pop();
+                        if (foreground.Count > 0)
+                        {
+                            foreground.Pop();
+                        }
+
+                        if (glow.Count > 0)
+                        {
+                            glow.Pop();
+                        }
                     } else if (rawPayload.Data.Length > 5 && rawPayload.Data[1] == 0x27 && rawPayload.Data[3] == 0x06) {
                         // achievement payload
                         var reader = new BinaryReader(new MemoryStream(rawPayload.Data[4..]));
