@@ -86,8 +86,8 @@ public sealed class Plugin : IDalamudPlugin {
         this.LanguageChanged(this.Interface.UiLanguage);
 
         this.Commands = new Commands(this);
-        this.Common = new XivCommonBase();
-        this.TextureCache = new TextureCache(this.DataManager!);
+        this.Common = new XivCommonBase(this.Interface);
+        this.TextureCache = new TextureCache(this.TextureProvider!);
         this.Functions = new GameFunctions.GameFunctions(this);
         this.Store = new Store(this);
         this.Ipc = new IpcManager(this.Interface);
