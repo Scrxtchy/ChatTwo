@@ -7,11 +7,12 @@ using ChatTwo.Util;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
+using Dalamud.Interface.Utility;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
-using ImGuiScene;
 using Lumina.Excel.GeneratedSheets;
 
 namespace ChatTwo.Ui;
@@ -24,7 +25,7 @@ internal sealed class ChatLog : IUiComponent {
     internal bool Activate;
     internal bool hideChat;
     internal string Chat = string.Empty;
-    private readonly TextureWrap? _fontIcon;
+    private readonly IDalamudTextureWrap? _fontIcon;
     private readonly List<string> _inputBacklog = new();
     private int _inputBacklogIdx = -1;
     internal int LastTab { get; private set; }
@@ -52,7 +53,7 @@ internal sealed class ChatLog : IUiComponent {
         this.Ui.Plugin.Commands.Register("/clearlog2", "Clear the Chat 2 chat log").Execute += this.ClearLog;
         this.Ui.Plugin.Commands.Register("/chat2").Execute += this.ToggleChat;
 
-        this._fontIcon = this.Ui.Plugin.DataManager.GetImGuiTexture("common/font/fonticon_ps5.tex");
+        this._fontIcon = this.Ui.Plugin.TextureProvider.GetTextureFromGame("common/font/fonticon_ps5.tex");
 
         this.Ui.Plugin.Functions.Chat.Activated += this.Activated;
         this.Ui.Plugin.ClientState.Login += this.Login;
@@ -68,13 +69,13 @@ internal sealed class ChatLog : IUiComponent {
         this.Ui.Plugin.Commands.Register("/clearlog2").Execute -= this.ClearLog;
     }
 
-    private void Logout(object? sender, EventArgs e) {
+    private void Logout() {
         foreach (var tab in this.Ui.Plugin.Config.Tabs) {
             tab.Clear();
         }
     }
 
-    private void Login(object? sender, EventArgs e) {
+    private void Login() {
         this.Ui.Plugin.Store.FilterAllTabs(false);
     }
 
@@ -423,7 +424,7 @@ internal sealed class ChatLog : IUiComponent {
 
         ImGui.SetNextWindowSize(new Vector2(500, 250) * ImGuiHelpers.GlobalScale, ImGuiCond.FirstUseEver);
 
-        if (!ImGui.Begin($"{this.Ui.Plugin.Name}###chat2", flags)) {
+        if (!ImGui.Begin($"{Plugin.Name}###chat2", flags)) {
             this._lastViewport = ImGui.GetWindowViewport().NativePtr;
             this._wasDocked = ImGui.IsWindowDocked();
             ImGui.End();

@@ -1,12 +1,17 @@
 using System.Numerics;
+using System.Text;
 using ChatTwo.Code;
 using ChatTwo.GameFunctions.Types;
 using ChatTwo.Util;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.Config;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
@@ -43,6 +48,9 @@ internal sealed unsafe class Chat : IDisposable {
 
     [Signature("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? E8 ?? ?? ?? ?? 48 8D 8C 24 ?? ?? ?? ?? E8 ?? ?? ?? ?? B0 01")]
     private readonly delegate* unmanaged<IntPtr, ulong, ushort, Utf8String*, Utf8String*, byte, ulong, byte> _sendTell = null!;
+    
+    [Signature("E8 ?? ?? ?? ?? 40 B6 01 48 8B 5C 24 ?? 48 8B 7C 24 ??")]
+    private readonly delegate* unmanaged<RaptureShellModule*, char*, ushort, void> _sendTellCommand = null!;
 
     [Signature("E8 ?? ?? ?? ?? F6 43 0A 40")]
     private readonly delegate* unmanaged<Framework*, IntPtr> _getNetworkModule = null!;
@@ -68,6 +76,7 @@ internal sealed unsafe class Chat : IDisposable {
     [Signature("E8 ?? ?? ?? ?? EB 0A 48 8D 4C 24 ?? E8 ?? ?? ?? ?? 48 8D 8D")]
     private readonly delegate* unmanaged<Utf8String*, int, IntPtr, void> _sanitiseString = null!;
 
+
     // Hooks
 
     private delegate byte ChatLogRefreshDelegate(IntPtr log, ushort eventId, AtkValue* value);
@@ -75,6 +84,7 @@ internal sealed unsafe class Chat : IDisposable {
     private delegate IntPtr ChangeChannelNameDelegate(IntPtr agent);
 
     private delegate void ReplyInSelectedChatModeDelegate(AgentInterface* agent);
+
 
     private delegate byte SetChatLogTellTarget(IntPtr a1, Utf8String* name, Utf8String* a3, ushort world, ulong contentId, ushort a6, byte a7);
 
@@ -142,7 +152,7 @@ internal sealed unsafe class Chat : IDisposable {
 
     internal Chat(Plugin plugin) {
         this.Plugin = plugin;
-        SignatureHelper.Initialise(this);
+        this.Plugin.GameInteropProvider.InitializeFromAttributes(this);
 
         this.ChatLogRefreshHook?.Enable();
         this.ChangeChannelNameHook?.Enable();
@@ -151,7 +161,7 @@ internal sealed unsafe class Chat : IDisposable {
 
         //this.Plugin.Framework.Update += this.InterceptKeybinds;
         this.Plugin.ClientState.Login += this.Login;
-        this.Login(null, null);
+        this.Login();
     }
 
     public void Dispose() {
@@ -368,7 +378,7 @@ internal sealed unsafe class Chat : IDisposable {
         }
     }
 
-    private void InterceptKeybinds(Dalamud.Game.Framework framework) {
+    private void InterceptKeybinds(IFramework framework1) {
         this.CheckFocus();
         this.UpdateKeybinds();
 
@@ -435,7 +445,7 @@ internal sealed unsafe class Chat : IDisposable {
         }
     }
 
-    private void Login(object? sender, EventArgs? e) {
+    private void Login() {
         if (this.ChangeChannelNameHook == null) {
             return;
         }
@@ -454,27 +464,28 @@ internal sealed unsafe class Chat : IDisposable {
         }
 
         string? input = null;
-        var option = Framework.Instance()->GetUiModule()->GetConfigModule()->GetValueById(572);
-        /*if (option != null) {
-            var directChat = option->Int > 0;
-            if (directChat && this._currentCharacter != null) {
-                // FIXME: this whole system sucks
-                var c = *this._currentCharacter;
-                if (c != '\0' && !char.IsControl(c)) {
-                    input = c.ToString();
+        if (this.Plugin.GameConfig.TryGet(UiControlOption.DirectChat, out bool option) && option)
+        {
+            /*if (this._currentCharacter != null)
+            {
+                        // FIXME: this whole system sucks
+                        var c = *this._currentCharacter;
+                        if (c != '\0' && !char.IsControl(c)) {
+                            input = c.ToString();
+                        }
+                    }
+                }*/
+        }
+            string? addIfNotPresent = null;
+
+            /*var str = value + 2;
+            if (str != null && ((int) str->Type & 0xF) == (int) ValueType.String && str->String != null) {
+                var add = MemoryHelper.ReadStringNullTerminated((IntPtr) str->String);
+                if (add.Length > 0) {
+                    addIfNotPresent = add;
                 }
-            }
-        }*/
-
-        string? addIfNotPresent = null;
-
-        /*var str = value + 2;
-        if (str != null && ((int) str->Type & 0xF) == (int) ValueType.String && str->String != null) {
-            var add = MemoryHelper.ReadStringNullTerminated((IntPtr) str->String);
-            if (add.Length > 0) {
-                addIfNotPresent = add;
-            }
-        }*/
+            }*/
+        
 
         try {
             var args = new ChatActivatedArgs(new ChannelSwitchInfo(null)) {
@@ -593,7 +604,7 @@ internal sealed unsafe class Chat : IDisposable {
             idx = 0;
         }
 
-        this._changeChatChannel(RaptureShellModule.Instance, (int) channel, idx, target, 1);
+        this._changeChatChannel(RaptureShellModule.Instance(), (int) channel, idx, target, 1);
         target->Dtor();
         IMemorySpace.Free(target);
     }
@@ -656,6 +667,23 @@ internal sealed unsafe class Chat : IDisposable {
         var contentId = *(ulong*) (ptr + 0xD8);
 
         return new TellHistoryInfo(name, world, contentId);
+    }
+
+    internal void SendTellCommand(PlayerPayload player)
+    {
+        if (_sendTellCommand == null)
+        {
+            return;
+        }
+        
+        if(player == null)
+        {
+            return;
+        }
+        //byte[] name = Encoding.ASCII.GetBytes(player.PlayerName);
+
+        //this._sendTellCommand(RaptureShellModule.Instance, (char*)name, (ushort)player.World.RowId);
+        
     }
 
     internal void SendTell(TellReason reason, ulong contentId, string name, ushort homeWorld, string message) {

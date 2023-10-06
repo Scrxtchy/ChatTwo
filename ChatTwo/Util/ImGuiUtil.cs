@@ -3,6 +3,7 @@ using System.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Utility;
 using ImGuiNET;
 
 namespace ChatTwo.Util;

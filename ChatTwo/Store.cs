@@ -2,9 +2,9 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using ChatTwo.Code;
 using ChatTwo.Util;
-using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Plugin.Services;
 using LiteDB;
 using Lumina.Excel.GeneratedSheets;
 
@@ -150,18 +150,18 @@ internal class Store : IDisposable {
         this.Database = this.Connect();
     }
 
-    private void Logout(object? sender, EventArgs eventArgs) {
+    private void Logout() {
         this.LastContentId = 0;
     }
 
-    private void UpdateReceiver(Framework framework) {
+    private void UpdateReceiver(IFramework framework) {
         var contentId = this.Plugin.ClientState.LocalContentId;
         if (contentId != 0) {
             this.LastContentId = contentId;
         }
     }
 
-    private void GetMessageInfo(Framework framework) {
+    private void GetMessageInfo(IFramework framework) {
         if (this.CheckpointTimer.Elapsed > TimeSpan.FromMinutes(5)) {
             this.CheckpointTimer.Restart();
             new Thread(() => this.Database.Checkpoint()).Start();
