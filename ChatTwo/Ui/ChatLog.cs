@@ -314,7 +314,7 @@ internal sealed class ChatLog : IUiComponent {
                     TellReason = reason,
                 });
             } catch (Exception ex) {
-                PluginLog.LogError(ex, "Error in chat Activated event");
+                Plugin.Log.Error(ex, "Error in chat Activated event");
             }
         }
     }*/

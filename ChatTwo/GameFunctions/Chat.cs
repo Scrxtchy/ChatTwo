@@ -9,7 +9,6 @@ using Dalamud.Game.Config;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
-using Dalamud.Logging;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures;
@@ -440,7 +439,7 @@ internal sealed unsafe class Chat : IDisposable {
                     TellReason = TellReason.Reply,
                 });
             } catch (Exception ex) {
-                PluginLog.LogError(ex, "Error in chat Activated event");
+                Plugin.Log.Error(ex, "Error in chat Activated event");
             }
         }
     }
@@ -494,7 +493,7 @@ internal sealed unsafe class Chat : IDisposable {
             };
             this.Activated?.Invoke(args);
         } catch (Exception ex) {
-            PluginLog.LogError(ex, "Error in chat Activated event");
+            Plugin.Log.Error(ex, "Error in chat Activated event");
         }
 
         // prevent the game from focusing the chat log
@@ -578,7 +577,7 @@ internal sealed unsafe class Chat : IDisposable {
                     TellTarget = target,
                 });
             } catch (Exception ex) {
-                PluginLog.LogError(ex, "Error in chat Activated event");
+                Plugin.Log.Error(ex, "Error in chat Activated event");
             }
         }
 

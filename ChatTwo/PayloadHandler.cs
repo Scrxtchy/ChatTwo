@@ -9,7 +9,6 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
-using Dalamud.Logging;
 using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
@@ -97,7 +96,7 @@ internal sealed class PayloadHandler {
                 try {
                     this.Ui.Plugin.Ipc.Invoke(id, sender, contentId, payload, chunk.Message?.SenderSource, chunk.Message?.ContentSource);
                 } catch (Exception ex) {
-                    PluginLog.Error(ex, "Error executing integration");
+                    Plugin.Log.Error(ex, "Error executing integration");
                 }
             }
 
@@ -348,7 +347,7 @@ internal sealed class PayloadHandler {
         try {
             action(link.CommandId, new SeString(payloads));
         } catch (Exception ex) {
-            PluginLog.LogError(ex, "Error executing DalamudLinkPayload handler");
+            Plugin.Log.Error(ex, "Error executing DalamudLinkPayload handler");
         }
     }
 
